@@ -2,10 +2,12 @@ from toolbox import CatchException, report_execption, write_results_to_file
 from toolbox import update_ui
 from .crazy_utils import request_gpt_model_in_new_thread_with_ui_alive
 from .crazy_utils import request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency
-
+from colorful import *
 
 def read_and_clean_pdf_text(fp):
     """
+    这个函数用于分割pdf，用了很多trick，逻辑较乱，效果奇好，不建议任何人去读这个函数
+
     **输入参数说明**
     - `fp`：需要读取和清理文本的pdf文件路径
 
@@ -22,17 +24,43 @@ def read_and_clean_pdf_text(fp):
     - 清除重复的换行
     - 将每个换行符替换为两个换行符，使每个段落之间有两个换行符分隔
     """
-    import fitz
+    import fitz, copy
     import re
     import numpy as np
+    fc = 0
+    fs = 1
+    fb = 2
+    REMOVE_FOOT_NOTE = True
+    REMOVE_FOOT_FFSIZE_PERCENT = 0.95 
+    def primary_ffsize(l):
+        fsize_statiscs = {}
+        for wtf in l['spans']:
+            if wtf['size'] not in fsize_statiscs: fsize_statiscs[wtf['size']] = 0
+            fsize_statiscs[wtf['size']] += len(wtf['text'])
+        return max(fsize_statiscs, key=fsize_statiscs.get)
+        
+    def ffsize_same(a,b):
+        return abs((a-b)/max(a,b)) < 0.02
     # file_content = ""
     with fitz.open(fp) as doc:
         meta_txt = []
         meta_font = []
+
+        meta_line = []
+        meta_span = []
         for index, page in enumerate(doc):
             # file_content += page.get_text()
             text_areas = page.get_text("dict")  # 获取页面上的文本信息
-
+            for t in text_areas['blocks']:
+                if 'lines' in t:
+                    pf = 998
+                    for l in t['lines']:
+                        txt_line = "".join([wtf['text'] for wtf in l['spans']])
+                        pf = primary_ffsize(l)
+                        meta_line.append([txt_line, pf, l['bbox'], l])
+                        for wtf in l['spans']: # for l in t['lines']:
+                            meta_span.append([wtf['text'], wtf['size'], len(wtf['text'])])
+                    # meta_line.append(["NEW_BLOCK", pf])
             # 块元提取                           for each word segment with in line                       for each line         cross-line words                          for each block
             meta_txt.extend([" ".join(["".join([wtf['text'] for wtf in l['spans']]) for l in t['lines']]).replace(
                 '- ', '') for t in text_areas['blocks'] if 'lines' in t])
@@ -41,6 +69,57 @@ def read_and_clean_pdf_text(fp):
             if index == 0:
                 page_one_meta = [" ".join(["".join([wtf['text'] for wtf in l['spans']]) for l in t['lines']]).replace(
                     '- ', '') for t in text_areas['blocks'] if 'lines' in t]
+                
+        fsize_statiscs = {}
+        for span in meta_span:
+            if span[1] not in fsize_statiscs: fsize_statiscs[span[1]] = 0
+            fsize_statiscs[span[1]] += span[2]
+        main_fsize = max(fsize_statiscs, key=fsize_statiscs.get)
+        if REMOVE_FOOT_NOTE:
+            give_up_fize_threshold = main_fsize * REMOVE_FOOT_FFSIZE_PERCENT
+        mega_sec = []
+        sec = []
+        for index, line in enumerate(meta_line):
+            if index == 0: 
+                sec.append(line[fc])
+                continue
+            # if line[fc] == "NEW_BLOCK":
+            #     continue
+            if meta_line[index][fs] <= give_up_fize_threshold:
+                continue
+            if ffsize_same(meta_line[index][fs], meta_line[index-1][fs]):
+                # 尝试识别段落
+                if meta_line[index][fc].endswith('.') and\
+                    (meta_line[index-1][fc] != 'NEW_BLOCK') and \
+                    (meta_line[index][fb][2] - meta_line[index][fb][0]) < (meta_line[index-1][fb][2] - meta_line[index-1][fb][0]) * 0.7:
+                    sec[-1] += line[fc]
+                    sec[-1] += "\n\n"
+                else:
+                    sec[-1] += " "
+                    sec[-1] += line[fc]
+            else:
+                # meta_line[index][fs] != meta_line[index+1][fs] and \
+                if (index+1 < len(meta_line)) and \
+                    meta_line[index][fs] > main_fsize:
+                    # 单行 + 字体大
+                    mega_sec.append(copy.deepcopy(sec))
+                    sec = []
+                    sec.append("# " + line[fc])
+                else:
+                    # 尝试识别section
+                    if meta_line[index-1][fs] > meta_line[index][fs]:
+                        sec.append("\n" + line[fc])
+                    else:
+                        sec.append(line[fc])
+
+        finals = []
+        for ms in mega_sec:
+            final = " ".join(ms)
+            final = final.replace('- ', ' ')
+            finals.append(final)
+
+        meta_txt = finals
+        
 
         def 把字符太少的块清除为回车(meta_txt):
             for index, block_txt in enumerate(meta_txt):
@@ -84,6 +163,10 @@ def read_and_clean_pdf_text(fp):
 
         # 换行 -> 双换行
         meta_txt = meta_txt.replace('\n', '\n\n')
+
+        for f in finals:
+            print亮黄(f)
+            print亮绿('***************************')
 
     return meta_txt, page_one_meta
 
@@ -177,11 +260,11 @@ def 解析PDF(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot,
             chatbot=chatbot,
             history_array=[[paper_meta] for _ in paper_fragments],
             sys_prompt_array=[
-                "请你作为一个学术翻译，把整个段落翻译成中文，要求语言简洁，禁止重复输出原文。" for _ in paper_fragments],
+                "请你作为一个学术翻译，把整个段落翻译成中文。" for _ in paper_fragments],
             max_workers=16  # OpenAI所允许的最大并行过载
         )
 
-        final = ["", paper_meta_info + '\n\n---\n\n---\n\n---\n\n']
+        final = ["", paper_meta_info + '\n\n---\n\n---\n\n']
         final.extend(gpt_response_collection)
         create_report_file_name = f"{os.path.basename(fp)}.trans.md"
         res = write_results_to_file(final, file_name=create_report_file_name)
@@ -200,4 +283,4 @@ def 解析PDF(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot,
         if os.path.exists(pdf_path):
             os.remove(pdf_path)
     chatbot.append(("给出输出文件清单", str(generated_conclusion_files)))
-    yield from update_ui(chatbot=chatbot, history=chatbot, msg=msg) # 刷新界面
+    yield from update_ui(chatbot=chatbot, history=chatbot) # 刷新界面
