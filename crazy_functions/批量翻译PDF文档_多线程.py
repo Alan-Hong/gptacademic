@@ -111,6 +111,7 @@ def read_and_clean_pdf_text(fp):
                         sec.append("\n" + line[fc])
                     else:
                         sec.append(line[fc])
+        mega_sec.append(copy.deepcopy(sec))
 
         finals = []
         for ms in mega_sec:
