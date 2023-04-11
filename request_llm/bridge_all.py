@@ -17,8 +17,8 @@ from .bridge_chatgpt import predict as chatgpt_ui
 from .bridge_chatglm import predict_no_ui_long_connection as chatglm_noui
 from .bridge_chatglm import predict as chatglm_ui
 
-# from .bridge_tgui import predict_no_ui_long_connection as tgui_noui
-# from .bridge_tgui import predict as tgui_ui
+from .bridge_tgui import predict_no_ui_long_connection as tgui_noui
+from .bridge_tgui import predict as tgui_ui
 
 methods = {
     "openai-no-ui": chatgpt_noui,
@@ -27,8 +27,8 @@ methods = {
     "chatglm-no-ui": chatglm_noui,
     "chatglm-ui": chatglm_ui,
 
-#     "tgui-no-ui": tgui_noui,
-#     "tgui-ui": tgui_ui,
+    "tgui-no-ui": tgui_noui,
+    "tgui-ui": tgui_ui,
 }
 
 def predict_no_ui_long_connection(inputs, llm_kwargs, history, sys_prompt, observe_window, console_slience=False):
@@ -50,6 +50,8 @@ def predict_no_ui_long_connection(inputs, llm_kwargs, history, sys_prompt, obser
     model = llm_kwargs['llm_model']
     n_model = 1
     if '&' not in model:
+        assert not model.startswith("tgui"), "TGUI不支持函数插件的实现"
+
         # 如果只询问1个大语言模型：
         if model.startswith('gpt'):
             method = methods['openai-no-ui']

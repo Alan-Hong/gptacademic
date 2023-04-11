@@ -35,7 +35,7 @@ def predict_no_ui_long_connection(inputs, llm_kwargs, history=[], sys_prompt="",
 
     watch_dog_patience = 5 # 看门狗 (watchdog) 的耐心, 设置5秒即可
     response = ""
-    for response, history in chatglm_model.stream_chat(chatglm_tokenizer, inputs, history=history_feedin, max_length=1024,
+    for response, history in chatglm_model.stream_chat(chatglm_tokenizer, inputs, history=history_feedin, max_length=llm_kwargs['max_length'],
                                                        top_p=llm_kwargs['top_p'], temperature=llm_kwargs['temperature']):
         # 观测窗，把已经获取的数据显示出去
         observe_window[0] = response
@@ -72,7 +72,7 @@ def predict(inputs, llm_kwargs, plugin_kwargs, chatbot, history=[], system_promp
         history_feedin.append(["What can I do?", system_prompt] )
         history_feedin.append([history[2*i], history[2*i+1]] )
 
-    for response, history in chatglm_model.stream_chat(chatglm_tokenizer, inputs, history=history_feedin, max_length=1024,
+    for response, history in chatglm_model.stream_chat(chatglm_tokenizer, inputs, history=history_feedin, max_length=llm_kwargs['max_length'],
                                                        top_p=llm_kwargs['top_p'], temperature=llm_kwargs['temperature']):
         chatbot[-1] = (inputs, response)
         yield from update_ui(chatbot=chatbot, history=history)
