@@ -39,8 +39,9 @@ WEB_PORT = -1
 # 如果OpenAI不响应（网络卡顿、代理失败、KEY失效），重试的次数限制
 MAX_RETRY = 2
 
-# OpenAI模型选择是（gpt4现在只对申请成功的人开放）
+# 模型选择是（gpt4现在只对申请成功的人开放）
 LLM_MODEL = "gpt-3.5-turbo"
+LOCAL_LLM_DEVICE = 'cpu'
 
 # OpenAI的API_URL
 API_URL = "https://api.openai.com/v1/chat/completions"

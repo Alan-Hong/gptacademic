@@ -244,7 +244,7 @@ def generate_payload(inputs, llm_kwargs, history, system_prompt, stream):
         "presence_penalty": 0,
         "frequency_penalty": 0,
     }
-    print(f" {llm_kwargs['llm_model']} : {conversation_cnt} : {inputs[:100]}")
+    print(f" {llm_kwargs['llm_model']} : {conversation_cnt} : {inputs}")
     return headers,payload
 
 
