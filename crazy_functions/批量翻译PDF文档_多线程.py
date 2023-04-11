@@ -69,7 +69,7 @@ def read_and_clean_pdf_text(fp):
             if index == 0:
                 page_one_meta = [" ".join(["".join([wtf['text'] for wtf in l['spans']]) for l in t['lines']]).replace(
                     '- ', '') for t in text_areas['blocks'] if 'lines' in t]
-                
+        # 获取正文主字体
         fsize_statiscs = {}
         for span in meta_span:
             if span[1] not in fsize_statiscs: fsize_statiscs[span[1]] = 0
@@ -77,16 +77,17 @@ def read_and_clean_pdf_text(fp):
         main_fsize = max(fsize_statiscs, key=fsize_statiscs.get)
         if REMOVE_FOOT_NOTE:
             give_up_fize_threshold = main_fsize * REMOVE_FOOT_FFSIZE_PERCENT
+
+        # 切分和重新整合
         mega_sec = []
         sec = []
         for index, line in enumerate(meta_line):
             if index == 0: 
                 sec.append(line[fc])
                 continue
-            # if line[fc] == "NEW_BLOCK":
-            #     continue
-            if meta_line[index][fs] <= give_up_fize_threshold:
-                continue
+            if REMOVE_FOOT_NOTE:
+                if meta_line[index][fs] <= give_up_fize_threshold:
+                    continue
             if ffsize_same(meta_line[index][fs], meta_line[index-1][fs]):
                 # 尝试识别段落
                 if meta_line[index][fc].endswith('.') and\
@@ -98,7 +99,6 @@ def read_and_clean_pdf_text(fp):
                     sec[-1] += " "
                     sec[-1] += line[fc]
             else:
-                # meta_line[index][fs] != meta_line[index+1][fs] and \
                 if (index+1 < len(meta_line)) and \
                     meta_line[index][fs] > main_fsize:
                     # 单行 + 字体大
@@ -118,9 +118,7 @@ def read_and_clean_pdf_text(fp):
             final = " ".join(ms)
             final = final.replace('- ', ' ')
             finals.append(final)
-
         meta_txt = finals
-        
 
         def 把字符太少的块清除为回车(meta_txt):
             for index, block_txt in enumerate(meta_txt):
@@ -229,31 +227,23 @@ def 解析PDF(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot,
     TOKEN_LIMIT_PER_FRAGMENT = 1600
     generated_conclusion_files = []
     for index, fp in enumerate(file_manifest):
+
         # 读取PDF文件
         file_content, page_one = read_and_clean_pdf_text(fp)
+
         # 递归地切割PDF文件
         from .crazy_utils import breakdown_txt_to_satisfy_token_limit_for_pdf
         from toolbox import get_conf
         enc = tiktoken.encoding_for_model(*get_conf('LLM_MODEL'))
         def get_token_num(txt): return len(enc.encode(txt))
-        USE_LEGACY_PDF_READING = False  # 是否借用chatpaper项目的pdf分解方法
-        if USE_LEGACY_PDF_READING:
-            # 分解文本
-            paper_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
-                txt=file_content,  get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT)
-            page_one_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
-                txt=str(page_one), get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT//4)
-        else:
-            from .third_party.get_paper_from_pdf import Paper # 这里借用了 https://github.com/kaixindelele/ChatPaper/blob/main/get_paper_from_pdf.py
-            paper = Paper(path=fp)
-            paper.parse_pdf()
-            for key, value in paper.section_text_dict.items():
-                print('**********************************************')
-                print(key, value)
+        paper_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
+            txt=file_content,  get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT)
+        page_one_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
+            txt=str(page_one), get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT//4)
 
-        # 为了更好的效果，我们剥离Introduction之后的部分
-        paper_meta = page_one_fragments[0].split('introduction')[0].split(
-            'Introduction')[0].split('INTRODUCTION')[0]
+        # 为了更好的效果，我们剥离Introduction之后的部分（如果有）
+        paper_meta = page_one_fragments[0].split('introduction')[0].split('Introduction')[0].split('INTRODUCTION')[0]
+        
         # 单线，获取文章meta信息
         paper_meta_info = yield from request_gpt_model_in_new_thread_with_ui_alive(
             inputs=f"以下是一篇学术论文的基础信息，请从中提取出“标题”、“收录会议或期刊”、“作者”、“摘要”、“编号”、“作者邮箱”这六个部分。请用markdown格式输出，最后用中文翻译摘要部分。请提取：{paper_meta}",
@@ -262,23 +252,32 @@ def 解析PDF(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot,
             chatbot=chatbot, history=[],
             sys_prompt="Your job is to collect information from materials。",
         )
+
         # 多线，翻译
         gpt_response_collection = yield from request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency(
             inputs_array=[
-                f"以下是你需要翻译的文章段落：\n{frag}" for frag in paper_fragments],
-            inputs_show_user_array=[f"" for _ in paper_fragments],
+                f"以下是你需要翻译的论文片段：\n{frag}" for frag in paper_fragments],
+            inputs_show_user_array=[f"\n---\n 原文： \n\n {frag.replace('#', '')}  \n---\n 翻译：\n " for frag in paper_fragments],
             llm_kwargs=llm_kwargs,
             chatbot=chatbot,
             history_array=[[paper_meta] for _ in paper_fragments],
             sys_prompt_array=[
-                "请你作为一个学术翻译，把整个段落翻译成中文。" for _ in paper_fragments],
+                "请你作为一个学术翻译，负责把学术论文的片段准确翻译成中文。" for _ in paper_fragments],
             max_workers=16  # OpenAI所允许的最大并行过载
         )
 
-        final = ["", paper_meta_info + '\n\n---\n\n---\n\n']
+        # 整理报告的格式
+        for i,k in enumerate(gpt_response_collection): 
+            if i%2==0:
+                gpt_response_collection[i] = f"\n\n---\n\n ## 原文[{i//2}/{len(gpt_response_collection)//2}]： \n\n {paper_fragments[i//2].replace('#', '')}  \n\n---\n\n ## 翻译[{i//2}/{len(gpt_response_collection)//2}]：\n "
+            else:
+                gpt_response_collection[i] = gpt_response_collection[i]
+        final = ["一、论文概况\n\n---\n\n", paper_meta_info.replace('# ', '### ') + '\n\n---\n\n', "二、论文翻译", ""]
         final.extend(gpt_response_collection)
         create_report_file_name = f"{os.path.basename(fp)}.trans.md"
         res = write_results_to_file(final, file_name=create_report_file_name)
+
+        # 更新UI
         generated_conclusion_files.append(f'./gpt_log/{create_report_file_name}')
         chatbot.append((f"{fp}完成了吗？", res))
         yield from update_ui(chatbot=chatbot, history=chatbot) # 刷新界面
