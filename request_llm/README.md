@@ -1,5 +1,11 @@
 # 如何使用其他大语言模型（dev分支测试中）
 
+## ChatGLM
+
+- 安装依赖 `pip install -r request_llm/requirements_chatglm.txt`
+- 修改配置，在config.py中将LLM_MODEL的值改为"chatglm"
+- 运行！ `python main.py`
+
 ## 1. 先运行text-generation
 ``` sh
 # 下载模型（ text-generation 这么牛的项目，别忘了给人家star ）

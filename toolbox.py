@@ -27,7 +27,7 @@ def ArgsGeneralWrapper(f):
     """
         装饰器函数，用于重组输入参数，改变输入参数的顺序与结构。
     """
-    def decorated(cookies, txt, txt2, top_p, temperature, chatbot, history, system_prompt, *args):
+    def decorated(cookies, max_length, llm_model, txt, txt2, top_p, temperature, chatbot, history, system_prompt, *args):
         txt_passon = txt
         if txt == "" and txt2 != "": txt_passon = txt2
         # 引入一个有cookie的chatbot
@@ -37,8 +37,9 @@ def ArgsGeneralWrapper(f):
         })
         llm_kwargs = {
             'api_key': cookies['api_key'],
-            'llm_model': cookies['llm_model'],
+            'llm_model': llm_model,
             'top_p':top_p, 
+            'max_length': max_length,
             'temperature':temperature,
         }
         plugin_kwargs = {
@@ -89,7 +90,7 @@ def predict_no_ui_but_counting_down(i_say, i_say_show_user, chatbot, llm_kwargs,
         long_connection: 是否采用更稳定的连接方式（推荐）（已弃用）
     """
     import time
-    from request_llm.bridge_chatgpt import predict_no_ui_long_connection
+    from request_llm.bridge_all import predict_no_ui_long_connection
     from toolbox import get_conf
     TIMEOUT_SECONDS, MAX_RETRY = get_conf('TIMEOUT_SECONDS', 'MAX_RETRY')
     # 多线程的时候，需要一个mutable结构在不同线程之间传递信息

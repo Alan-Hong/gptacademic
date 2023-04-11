@@ -16,9 +16,13 @@ def get_crazy_functions():
     from crazy_functions.高级功能函数模板 import 高阶功能模板函数
     from crazy_functions.代码重写为全英文_多线程 import 全项目切换英文
     from crazy_functions.Latex全文润色 import Latex英文润色
+    from crazy_functions.询问多个大语言模型 import 同时问询
 
     function_plugins = {
-
+        "同时询问多个大语言模型（ChatGPT + ChatGLM）": {
+            "Color": "stop",    # 按钮颜色
+            "Function": HotReload(同时问询)
+        },
         "解析整个Python项目": {
             "Color": "stop",    # 按钮颜色
             "Function": HotReload(解析一个Python项目)
