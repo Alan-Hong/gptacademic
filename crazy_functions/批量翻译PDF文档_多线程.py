@@ -235,11 +235,21 @@ def 解析PDF(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot,
         from toolbox import get_conf
         enc = tiktoken.encoding_for_model(*get_conf('LLM_MODEL'))
         def get_token_num(txt): return len(enc.encode(txt))
-        # 分解文本
-        paper_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
-            txt=file_content,  get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT)
-        page_one_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
-            txt=str(page_one), get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT//4)
+        USE_LEGACY_PDF_READING = False  # 是否借用chatpaper项目的pdf分解方法
+        if USE_LEGACY_PDF_READING:
+            # 分解文本
+            paper_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
+                txt=file_content,  get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT)
+            page_one_fragments = breakdown_txt_to_satisfy_token_limit_for_pdf(
+                txt=str(page_one), get_token_fn=get_token_num, limit=TOKEN_LIMIT_PER_FRAGMENT//4)
+        else:
+            from .third_party.get_paper_from_pdf import Paper # 这里借用了 https://github.com/kaixindelele/ChatPaper/blob/main/get_paper_from_pdf.py
+            paper = Paper(path=fp)
+            paper.parse_pdf()
+            for key, value in paper.section_text_dict.items():
+                print('**********************************************')
+                print(key, value)
+
         # 为了更好的效果，我们剥离Introduction之后的部分
         paper_meta = page_one_fragments[0].split('introduction')[0].split(
             'Introduction')[0].split('INTRODUCTION')[0]
