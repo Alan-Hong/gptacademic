@@ -165,8 +165,13 @@ def request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency(
     from request_llm.bridge_all import predict_no_ui_long_connection
     assert len(inputs_array) == len(history_array)
     assert len(inputs_array) == len(sys_prompt_array)
+    # 屏蔽掉 chatglm的多线程，可能会导致严重卡顿
+    if not llm_kwargs['llm_model'].startswith('gpt-'):
+        max_workers = 1
+        
     executor = ThreadPoolExecutor(max_workers=max_workers)
     n_frag = len(inputs_array)
+
     # 用户反馈
     chatbot.append(["请开始多线程操作。", ""])
     msg = '正常'
