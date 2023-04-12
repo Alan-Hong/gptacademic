@@ -2,7 +2,7 @@
 from transformers import AutoModel, AutoTokenizer
 import time
 import importlib
-from toolbox import update_ui
+from toolbox import update_ui, get_conf
 
 
 global chatglm_model, chatglm_tokenizer
@@ -15,7 +15,12 @@ def model_loader():
     if chatglm_tokenizer is None:
         chatglm_tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
     if chatglm_model is None: # 尚未加载
-        chatglm_model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True).float()
+        device, = get_conf('LOCAL_MODEL_DEVICE')
+        if device=='cpu':
+            chatglm_model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True).float()
+        else:
+            chatglm_model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True).half().cuda()
+        chatglm_model = chatglm_model.eval()
     chatglm_model = chatglm_model.eval()
 
 def predict_no_ui_long_connection(inputs, llm_kwargs, history=[], sys_prompt="", observe_window=None, console_slience=False):

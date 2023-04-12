@@ -42,6 +42,7 @@ from transformers import AutoModel, AutoTokenizer \n\
 chatglm_tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True) \n\
 chatglm_model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True).float() ' >> warm_up_chatglm.py
 RUN python3 -u warm_up_chatglm.py
+RUN $useProxyNetwork git pull -b v3.0
 
 # 启动
 CMD ["python3", "-u", "main.py"]
