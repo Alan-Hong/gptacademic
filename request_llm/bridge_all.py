@@ -98,7 +98,7 @@ def predict_no_ui_long_connection(inputs, llm_kwargs, history, sys_prompt, obser
                 # 观察窗（window）
                 chat_string = []
                 for i in range(n_model):
-                    chat_string.append( f"{str(models[i])} 说: {window_mutex[i][0]}" )
+                    chat_string.append( f"[{str(models[i])} 说]: {window_mutex[i][0]}" )
                 res = '\n\n---\n\n'.join(chat_string)
                 # # # # # # # # # # #
                 observe_window[0] = res
@@ -108,7 +108,7 @@ def predict_no_ui_long_connection(inputs, llm_kwargs, history, sys_prompt, obser
 
         return_string_collect = []
         for i, future in enumerate(futures):  # wait and get
-            return_string_collect.append( f"{str(models[i])} 说: {future.result()}" )
+            return_string_collect.append( f"[{str(models[i])} 说]: {future.result()}" )
         window_mutex[-1] = False # stop mutex thread
         res = '\n\n---\n\n'.join(return_string_collect)
         return res
