@@ -32,58 +32,39 @@ class PaperFileGroup():
                 for j, segment in enumerate(segments):
                     self.sp_file_contents.append(segment)
                     self.sp_file_index.append(index)
-                    self.sp_file_tag.append(self.file_paths[index] + f".part-{j}.tex")
+                    self.sp_file_tag.append(self.file_paths[index] + f".part-{j}.md")
 
         print('Segmentation: done')
 
-def 多文件润色(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, language='en'):
+def 多文件翻译(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, language='en'):
     import time, os, re
     from .crazy_utils import request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency
 
-
-    #  <-------- 读取Latex文件，删除其中的所有注释 ----------> 
+    #  <-------- 读取Markdown文件，删除其中的所有注释 ----------> 
     pfg = PaperFileGroup()
 
     for index, fp in enumerate(file_manifest):
         with open(fp, 'r', encoding='utf-8', errors='replace') as f:
             file_content = f.read()
-            # 定义注释的正则表达式
-            comment_pattern = r'%.*'
-            # 使用正则表达式查找注释，并替换为空字符串
-            clean_tex_content = re.sub(comment_pattern, '', file_content)
             # 记录删除注释后的文本
             pfg.file_paths.append(fp)
-            pfg.file_contents.append(clean_tex_content)
+            pfg.file_contents.append(file_content)
 
-    #  <-------- 拆分过长的latex文件 ----------> 
-    pfg.run_file_split(max_token_limit=1024)
+    #  <-------- 拆分过长的Markdown文件 ----------> 
+    pfg.run_file_split(max_token_limit=2048)
     n_split = len(pfg.sp_file_contents)
 
-    #  <-------- 抽取摘要 ----------> 
-    # if language == 'en':
-    #     abs_extract_inputs = f"Please write an abstract for this paper"
-
-    # # 单线，获取文章meta信息
-    # paper_meta_info = yield from request_gpt_model_in_new_thread_with_ui_alive(
-    #     inputs=abs_extract_inputs,
-    #     inputs_show_user=f"正在抽取摘要信息。",
-    #     llm_kwargs=llm_kwargs,
-    #     chatbot=chatbot, history=[],
-    #     sys_prompt="Your job is to collect information from materials。",
-    # )
-
     #  <-------- 多线程润色开始 ----------> 
-    if language == 'en':
-        inputs_array = ["Below is a section from an academic paper, polish this section to meet the academic standard, improve the grammar, clarity and overall readability, do not modify any latex command such as \section, \cite and equations:" + 
+    if language == 'en->zh':
+        inputs_array = ["This is a Markdown file, translate it into Chinese, do not modify any existing Markdown commands:" + 
                         f"\n\n{frag}" for frag in pfg.sp_file_contents]
-        inputs_show_user_array = [f"Polish {f}" for f in pfg.sp_file_tag]
-        sys_prompt_array = ["You are a professional academic paper writer." for _ in range(n_split)]
-    elif language == 'zh':
-        inputs_array = [f"以下是一篇学术论文中的一段内容，请将此部分润色以满足学术标准，提高语法、清晰度和整体可读性，不要修改任何LaTeX命令，例如\section，\cite和方程式：" + 
+        inputs_show_user_array = [f"翻译 {f}" for f in pfg.sp_file_tag]
+        sys_prompt_array = ["You are a professional academic paper translator." for _ in range(n_split)]
+    elif language == 'zh->en':
+        inputs_array = [f"This is a Markdown file, translate it into English, do not modify any existing Markdown commands:" + 
                         f"\n\n{frag}" for frag in pfg.sp_file_contents]
-        inputs_show_user_array = [f"润色 {f}" for f in pfg.sp_file_tag]
-        sys_prompt_array=["你是一位专业的中文学术论文作家。" for _ in range(n_split)]
-
+        inputs_show_user_array = [f"翻译 {f}" for f in pfg.sp_file_tag]
+        sys_prompt_array = ["You are a professional academic paper translator." for _ in range(n_split)]
 
     gpt_response_collection = yield from request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency(
         inputs_array=inputs_array,
@@ -104,12 +85,15 @@ def 多文件润色(file_manifest, project_folder, llm_kwargs, plugin_kwargs, ch
     yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
 
 
+
+
+
 @CatchException
-def Latex英文润色(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, web_port):
+def Markdown英译中(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, web_port):
     # 基本信息：功能、贡献者
     chatbot.append([
         "函数插件功能？",
-        "对整个Latex项目进行润色。函数插件贡献者: Binary-Husky"])
+        "对整个Markdown项目进行翻译。函数插件贡献者: Binary-Husky"])
     yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
 
     # 尝试导入依赖，如果缺少依赖，则给出安装建议
@@ -130,24 +114,23 @@ def Latex英文润色(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_p
         report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到本地项目或无权访问: {txt}")
         yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
         return
-    file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.tex', recursive=True)]
+    file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.md', recursive=True)]
     if len(file_manifest) == 0:
-        report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到任何.tex文件: {txt}")
+        report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到任何.md文件: {txt}")
         yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
         return
-    yield from 多文件润色(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, language='en')
-
+    yield from 多文件翻译(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, language='en->zh')
 
 
 
 
 
 @CatchException
-def Latex中文润色(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, web_port):
+def Markdown中译英(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, web_port):
     # 基本信息：功能、贡献者
     chatbot.append([
         "函数插件功能？",
-        "对整个Latex项目进行润色。函数插件贡献者: Binary-Husky"])
+        "对整个Markdown项目进行翻译。函数插件贡献者: Binary-Husky"])
     yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
 
     # 尝试导入依赖，如果缺少依赖，则给出安装建议
@@ -168,9 +151,12 @@ def Latex中文润色(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_p
         report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到本地项目或无权访问: {txt}")
         yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
         return
-    file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.tex', recursive=True)]
+    if txt.endswith('.md'):
+        file_manifest = [txt]
+    else:
+        file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.md', recursive=True)]
     if len(file_manifest) == 0:
-        report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到任何.tex文件: {txt}")
+        report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到任何.md文件: {txt}")
         yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
         return
-    yield from 多文件润色(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, language='zh')
+    yield from 多文件翻译(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, language='zh->en')

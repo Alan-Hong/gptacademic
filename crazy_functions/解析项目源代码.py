@@ -11,7 +11,8 @@ def 解析源代码新(file_manifest, project_folder, llm_kwargs, plugin_kwargs,
     history_array = []
     sys_prompt_array = []
     report_part_1 = []
-
+    
+    assert len(file_manifest) <= 512, "源文件太多, 请缩减输入文件的数量, 或者删除此行并拆分file_manifest以保证结果能被分批存储。"
     ############################## <第一步，逐个文件分析，多线程> ##################################
     for index, fp in enumerate(file_manifest):
         with open(fp, 'r', encoding='utf-8', errors='replace') as f:
@@ -225,9 +226,34 @@ def 解析一个Golang项目(txt, llm_kwargs, plugin_kwargs, chatbot, history, s
         report_execption(chatbot, history, a=f"解析项目: {txt}", b=f"找不到本地项目或无权访问: {txt}")
         yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
         return
-    file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.go', recursive=True)]
+    file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.go', recursive=True)] + \
+                    [f for f in glob.glob(f'{project_folder}/**/go.mod', recursive=True)] + \
+                    [f for f in glob.glob(f'{project_folder}/**/go.sum', recursive=True)] + \
+                    [f for f in glob.glob(f'{project_folder}/**/go.work', recursive=True)]
     if len(file_manifest) == 0:
         report_execption(chatbot, history, a=f"解析项目: {txt}", b=f"找不到任何golang文件: {txt}")
         yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
         return
     yield from 解析源代码新(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt)
+    
+    
+@CatchException
+def 解析一个Lua项目(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, web_port):
+    history = []    # 清空历史，以免输入溢出
+    import glob, os
+    if os.path.exists(txt):
+        project_folder = txt
+    else:
+        if txt == "": txt = '空空如也的输入栏'
+        report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到本地项目或无权访问: {txt}")
+        yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
+        return
+    file_manifest = [f for f in glob.glob(f'{project_folder}/**/*.lua', recursive=True)] + \
+                    [f for f in glob.glob(f'{project_folder}/**/*.xml', recursive=True)] + \
+                    [f for f in glob.glob(f'{project_folder}/**/*.json', recursive=True)] + \
+                    [f for f in glob.glob(f'{project_folder}/**/*.toml', recursive=True)]
+    if len(file_manifest) == 0:
+        report_execption(chatbot, history, a = f"解析项目: {txt}", b = f"找不到任何lua文件: {txt}")
+        yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
+        return
+    yield from 解析源代码新(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt)    

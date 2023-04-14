@@ -1,8 +1,8 @@
 # ChatGPT 学术优化
 
-**如果喜欢这个项目，请给它一个Star；如果你发明了更好用的快捷键或函数插件，欢迎发issue或者pull requests（dev分支）**
+**如果喜欢这个项目，请给它一个Star；如果你发明了更好用的快捷键或函数插件，欢迎发issue或者pull requests**
 
-If you like this project, please give it a Star. If you've come up with more useful academic shortcuts or functional plugins, feel free to open an issue or pull request （to `dev` branch）.
+If you like this project, please give it a Star. If you've come up with more useful academic shortcuts or functional plugins, feel free to open an issue or pull request.
 
 > **Note**
 >
@@ -10,7 +10,7 @@ If you like this project, please give it a Star. If you've come up with more use
 >
 > 2.本项目中每个文件的功能都在自译解[`self_analysis.md`](https://github.com/binary-husky/chatgpt_academic/wiki/chatgpt-academic%E9%A1%B9%E7%9B%AE%E8%87%AA%E8%AF%91%E8%A7%A3%E6%8A%A5%E5%91%8A)详细说明。随着版本的迭代，您也可以随时自行点击相关函数插件，调用GPT重新生成项目的自我解析报告。常见问题汇总在[`wiki`](https://github.com/binary-husky/chatgpt_academic/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)当中。
 > 
-> 3.如果您不太习惯部分中文命名的函数、注释或者界面，您可以随时点击相关函数插件，调用ChatGPT一键生成纯英文的项目源代码。
+> 3.如果您不太习惯部分中文命名的函数、注释或者界面，您可以随时点击相关函数插件，调用ChatGPT一键生成纯英文的项目源代码。另见由本项目Markdown翻译插件一键生成的[README in English](img/README_EN.md). 
 >
 
 
@@ -25,28 +25,26 @@ If you like this project, please give it a Star. If you've come up with more use
 [配置代理服务器](https://www.bilibili.com/video/BV1rc411W7Dr) | 支持配置代理服务器
 模块化设计 | 支持自定义高阶的实验性功能与[函数插件]，插件支持[热更新](https://github.com/binary-husky/chatgpt_academic/wiki/%E5%87%BD%E6%95%B0%E6%8F%92%E4%BB%B6%E6%8C%87%E5%8D%97)
 [自我程序剖析](https://www.bilibili.com/video/BV1cj411A7VW) | [函数插件] [一键读懂](https://github.com/binary-husky/chatgpt_academic/wiki/chatgpt-academic%E9%A1%B9%E7%9B%AE%E8%87%AA%E8%AF%91%E8%A7%A3%E6%8A%A5%E5%91%8A)本项目的源代码
-[程序剖析](https://www.bilibili.com/video/BV1cj411A7VW) | [函数插件] 一键可以剖析其他Python/C/C++/Java项目树
+[程序剖析](https://www.bilibili.com/video/BV1cj411A7VW) | [函数插件] 一键可以剖析其他Python/C/C++/Java/Lua/...项目树
 读论文 | [函数插件] 一键解读latex论文全文并生成摘要
 Latex全文翻译、润色 | [函数插件] 一键翻译或润色latex论文
 批量注释生成 | [函数插件] 一键批量生成函数注释
 chat分析报告生成 | [函数插件] 运行后自动生成总结汇报
 [arxiv小助手](https://www.bilibili.com/video/BV1LM4y1279X) | [函数插件] 输入arxiv文章url即可一键翻译摘要+下载PDF
 [PDF论文全文翻译功能](https://www.bilibili.com/video/BV1KT411x7Wn) | [函数插件] PDF论文提取题目&摘要+翻译全文（多线程）
-[谷歌学术统合小助手](https://www.bilibili.com/video/BV19L411U7ia) (Version>=2.45) | [函数插件] 给定任意谷歌学术搜索页面URL，让gpt帮你选择有趣的文章
-公式显示 | 可以同时显示公式的tex形式和渲染形式
-图片显示 | 可以在markdown中显示图片
+[谷歌学术统合小助手](https://www.bilibili.com/video/BV19L411U7ia) | [函数插件] 给定任意谷歌学术搜索页面URL，让gpt帮你选择有趣的文章
+公式/图片/表格显示 | 可以同时显示公式的tex形式和渲染形式，支持公式、代码高亮
 多线程函数插件支持 | 支持多线调用chatgpt，一键处理海量文本或程序
-支持GPT输出的markdown表格 | 可以输出支持GPT的markdown表格
 启动暗色gradio[主题](https://github.com/binary-husky/chatgpt_academic/issues/173) | 在浏览器url后面添加```/?__dark-theme=true```可以切换dark主题
-huggingface免科学上网[在线体验](https://huggingface.co/spaces/qingxu98/gpt-academic) | 登陆huggingface后复制[此空间](https://huggingface.co/spaces/qingxu98/gpt-academic)
-[多LLM模型](https://www.bilibili.com/video/BV1EM411K7VH/)混合支持（[v3.0分支](https://github.com/binary-husky/chatgpt_academic/tree/v3.0)测试中） | 同时被ChatGPT和[清华ChatGLM](https://github.com/THUDM/ChatGLM-6B)伺候的感觉一定会很不错吧？
+[多LLM模型](https://www.bilibili.com/video/BV1EM411K7VH/)支持（[v3.0分支](https://github.com/binary-husky/chatgpt_academic/tree/v3.0)） | 同时被ChatGPT和[清华ChatGLM](https://github.com/THUDM/ChatGLM-6B)伺候的感觉一定会很不错吧？
 兼容[TGUI](https://github.com/oobabooga/text-generation-webui)接入更多样的语言模型 | 接入opt-1.3b, galactica-1.3b等模型（[v3.0分支](https://github.com/binary-husky/chatgpt_academic/tree/v3.0)测试中）
+huggingface免科学上网[在线体验](https://huggingface.co/spaces/qingxu98/gpt-academic) | 登陆huggingface后复制[此空间](https://huggingface.co/spaces/qingxu98/gpt-academic)
 …… | ……
 
 </div>
 
 <!-- - 新界面（左：master主分支, 右：dev开发前沿） -->
-- 新界面
+- 新界面（修改config.py中的LAYOUT选项即可实现“左右布局”和“上下布局”的切换）
 <div align="center">
 <img src="https://user-images.githubusercontent.com/96192199/230361456-61078362-a966-4eb5-b49e-3c62ef18b860.gif" width="700" >
 </div>
@@ -170,12 +168,12 @@ input区域 输入 ./crazy_functions/test_project/python/dqn ， 然后点击 "[
 ```
 
 ## 其他部署方式
+
+- 远程云服务器部署
+请访问[部署wiki-2](https://github.com/binary-husky/chatgpt_academic/wiki/%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%BF%9C%E7%A8%8B%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97)
+
 - 使用WSL2（Windows Subsystem for Linux 子系统）
 请访问[部署wiki-1](https://github.com/binary-husky/chatgpt_academic/wiki/%E4%BD%BF%E7%94%A8WSL2%EF%BC%88Windows-Subsystem-for-Linux-%E5%AD%90%E7%B3%BB%E7%BB%9F%EF%BC%89%E9%83%A8%E7%BD%B2)
-
-- nginx远程部署
-请访问[部署wiki-2](https://github.com/binary-husky/chatgpt_academic/wiki/%E8%BF%9C%E7%A8%8B%E9%83%A8%E7%BD%B2%E7%9A%84%E6%8C%87%E5%AF%BC)
-
 
 ## 自定义新的便捷按钮（学术快捷键自定义）
 打开functional.py，添加条目如下，然后重启程序即可。（如果按钮已经添加成功并可见，那么前缀、后缀都支持热修改，无需重启程序即可生效。）
@@ -269,13 +267,9 @@ python check_proxy.py
 
 ## Todo 与 版本规划:
 
-- version 3 (Todo): 
-- - 支持gpt4和其他更多llm
-- version 2.4+ (Todo): 
-- - 总结大工程源代码时文本过长、token溢出的问题
-- - 实现项目打包部署
-- - 函数插件参数接口优化
-- - 自更新
+- version 3.0 (Todo): 优化对chatglm和其他小型llm的支持
+- version 2.6: 重构了插件结构，提高了交互性，加入更多插件
+- version 2.5: 自更新，解决总结大工程源代码时文本过长、token溢出的问题
 - version 2.4: (1)新增PDF全文翻译功能; (2)新增输入区切换位置的功能; (3)新增垂直布局选项; (4)多线程函数插件优化。
 - version 2.3: 增强多线程交互性
 - version 2.2: 函数插件支持热重载
