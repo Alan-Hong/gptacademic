@@ -1,3 +1,15 @@
+---
+title: academic-chatgpt
+emoji: 😻
+colorFrom: blue
+colorTo: blue
+sdk: gradio
+sdk_version: 3.25.0
+python_version: 3.11
+app_file: main.py
+pinned: false
+---
+
 # ChatGPT 学术优化
 
 **如果喜欢这个项目，请给它一个Star；如果你发明了更好用的快捷键或函数插件，欢迎发issue或者pull requests**

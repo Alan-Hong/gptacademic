@@ -52,6 +52,7 @@ if LAYOUT == "TOP-DOWN":
 cancel_handles = []
 with gr.Blocks(title="ChatGPT 学术优化", theme=set_theme, analytics_enabled=False, css=advanced_css) as demo:
     gr.HTML(title_html)
+    gr.HTML('''<center><a href="https://huggingface.co/spaces/qingxu98/gpt-academic?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>请您打开此页面后务必点击上方的“复制空间”（Duplicate Space）按钮！<br/>切忌在“复制空间”（Duplicate Space）之前填入API_KEY或进行提问，否则您的API_KEY将极可能被空间所有者攫取！</center>''')
     cookies = gr.State({'api_key': API_KEY, 'llm_model': LLM_MODEL})
     with gr_L1():
         with gr_L2(scale=2):
@@ -171,4 +172,4 @@ def auto_opentab_delay():
     threading.Thread(target=auto_update, name="self-upgrade", daemon=True).start()
 
 auto_opentab_delay()
-demo.queue(concurrency_count=CONCURRENT_COUNT).launch(server_name="0.0.0.0", server_port=PORT, auth=AUTHENTICATION)
+demo.queue(concurrency_count=CONCURRENT_COUNT).launch(server_name="0.0.0.0", share=False)
