@@ -52,7 +52,7 @@ if LAYOUT == "TOP-DOWN":
 cancel_handles = []
 with gr.Blocks(title="ChatGPT 学术优化", theme=set_theme, analytics_enabled=False, css=advanced_css) as demo:
     gr.HTML(title_html)
-    gr.HTML('''<center><a href="https://huggingface.co/spaces/qingxu98/gpt-academic?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>请您打开此页面后务必点击上方的“复制空间”（Duplicate Space）按钮！<br/>切忌在“复制空间”（Duplicate Space）之前填入API_KEY或进行提问，否则您的API_KEY将极可能被空间所有者攫取！</center>''')
+    gr.HTML('''<center><a href="https://huggingface.co/spaces/qingxu98/gpt-academic?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>请您打开此页面后务必点击上方的“复制空间”（Duplicate Space）按钮！<font color="#FF00FF">使用时，先在输入框填入API-KEY然后回车。</font><br/>切忌在“复制空间”（Duplicate Space）之前填入API_KEY或进行提问，否则您的API_KEY将极可能被空间所有者攫取！</center>''')
     cookies = gr.State({'api_key': API_KEY, 'llm_model': LLM_MODEL})
     with gr_L1():
         with gr_L2(scale=2):
@@ -62,7 +62,7 @@ with gr.Blocks(title="ChatGPT 学术优化", theme=set_theme, analytics_enabled=
         with gr_L2(scale=1):
             with gr.Accordion("输入区", open=True) as area_input_primary:
                 with gr.Row():
-                    txt = gr.Textbox(show_label=False, placeholder="Input question here.").style(container=False)
+                    txt = gr.Textbox(show_label=False, placeholder="Input question/api-key here.").style(container=False)
                 with gr.Row():
                     submitBtn = gr.Button("提交", variant="primary")
                 with gr.Row():
