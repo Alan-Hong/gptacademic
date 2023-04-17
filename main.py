@@ -69,6 +69,7 @@ def main():
                     with gr.Row():
                         resetBtn = gr.Button("重置", variant="secondary"); resetBtn.style(size="sm")
                         stopBtn = gr.Button("停止", variant="secondary"); stopBtn.style(size="sm")
+                        clearBtn = gr.Button("清除", variant="secondary", visible=False); clearBtn.style(size="sm")
                     with gr.Row():
                         status = gr.Markdown(f"Tip: 按Enter提交, 按Shift+Enter换行。当前模型: {LLM_MODEL} \n {proxy_info}")
                 with gr.Accordion("基础功能区", open=True) as area_basic_fn:
@@ -99,7 +100,10 @@ def main():
                     system_prompt = gr.Textbox(show_label=True, placeholder=f"System Prompt", label="System prompt", value=initial_prompt)
                     top_p = gr.Slider(minimum=-0, maximum=1.0, value=1.0, step=0.01,interactive=True, label="Top-p (nucleus sampling)",)
                     temperature = gr.Slider(minimum=-0, maximum=2.0, value=1.0, step=0.01, interactive=True, label="Temperature",)
-                    checkboxes = gr.CheckboxGroup(["基础功能区", "函数插件区", "底部输入区"], value=["基础功能区", "函数插件区"], label="显示/隐藏功能区")
+                    max_length_sl = gr.Slider(minimum=256, maximum=4096, value=512, step=1, interactive=True, label="MaxLength",)
+                    checkboxes = gr.CheckboxGroup(["基础功能区", "函数插件区", "底部输入区", "输入清除键"], value=["基础功能区", "函数插件区"], label="显示/隐藏功能区")
+                    md_dropdown = gr.Dropdown(AVAIL_LLM_MODELS, value=LLM_MODEL, label="").style(container=False)
+
                     gr.Markdown(description)
                 with gr.Accordion("备选输入区", open=True, visible=False) as area_input_secondary:
                     with gr.Row():
@@ -107,8 +111,9 @@ def main():
                     with gr.Row():
                         submitBtn2 = gr.Button("提交", variant="primary")
                     with gr.Row():
-                        resetBtn2 = gr.Button("重置", variant="secondary"); resetBtn.style(size="sm")
-                        stopBtn2 = gr.Button("停止", variant="secondary"); stopBtn.style(size="sm")
+                        resetBtn2 = gr.Button("重置", variant="secondary"); resetBtn2.style(size="sm")
+                        stopBtn2 = gr.Button("停止", variant="secondary"); stopBtn2.style(size="sm")
+                        clearBtn2 = gr.Button("清除", variant="secondary", visible=False); clearBtn.style(size="sm")
         # 功能区显示开关与功能区的互动
         def fn_area_visibility(a):
             ret = {}
@@ -116,11 +121,13 @@ def main():
             ret.update({area_crazy_fn: gr.update(visible=("函数插件区" in a))})
             ret.update({area_input_primary: gr.update(visible=("底部输入区" not in a))})
             ret.update({area_input_secondary: gr.update(visible=("底部输入区" in a))})
+            ret.update({clearBtn: gr.update(visible=("输入清除键" in a))})
+            ret.update({clearBtn2: gr.update(visible=("输入清除键" in a))})
             if "底部输入区" in a: ret.update({txt: gr.update(value="")})
             return ret
-        checkboxes.select(fn_area_visibility, [checkboxes], [area_basic_fn, area_crazy_fn, area_input_primary, area_input_secondary, txt, txt2] )
+        checkboxes.select(fn_area_visibility, [checkboxes], [area_basic_fn, area_crazy_fn, area_input_primary, area_input_secondary, txt, txt2, clearBtn, clearBtn2] )
         # 整理反复出现的控件句柄组合
-        input_combo = [cookies, txt, txt2, top_p, temperature, chatbot, history, system_prompt]
+        input_combo = [cookies, max_length_sl, md_dropdown, txt, txt2, top_p, temperature, chatbot, history, system_prompt]
         output_combo = [cookies, chatbot, history, status]
         predict_args = dict(fn=ArgsGeneralWrapper(predict), inputs=input_combo, outputs=output_combo)
         # 提交按钮、重置按钮
@@ -130,24 +137,38 @@ def main():
         cancel_handles.append(submitBtn2.click(**predict_args))
         resetBtn.click(lambda: ([], [], "已重置"), None, [chatbot, history, status])
         resetBtn2.click(lambda: ([], [], "已重置"), None, [chatbot, history, status])
+        clearBtn.click(lambda: ("",""), None, [txt, txt2])
+        clearBtn2.click(lambda: ("",""), None, [txt, txt2])
         # 基础功能区的回调函数注册
         for k in functional:
             click_handle = functional[k]["Button"].click(fn=ArgsGeneralWrapper(predict), inputs=[*input_combo, gr.State(True), gr.State(k)], outputs=output_combo)
             cancel_handles.append(click_handle)
         # 文件上传区，接收文件后与chatbot的互动
-        file_upload.upload(on_file_uploaded, [file_upload, chatbot, txt], [chatbot, txt])
+        file_upload.upload(on_file_uploaded, [file_upload, chatbot, txt, txt2, checkboxes], [chatbot, txt, txt2])
         # 函数插件-固定按钮区
         for k in crazy_fns:
             if not crazy_fns[k].get("AsButton", True): continue
             click_handle = crazy_fns[k]["Button"].click(ArgsGeneralWrapper(crazy_fns[k]["Function"]), [*input_combo, gr.State(PORT)], output_combo)
             click_handle.then(on_report_generated, [file_upload, chatbot], [file_upload, chatbot])
-            # def expand_file_area(file_upload, area_file_up):
-            #     if len(file_upload)>0: return {area_file_up: gr.update(open=True)}
-            # click_handle.then(expand_file_area, [file_upload, area_file_up], [area_file_up])
             cancel_handles.append(click_handle)
-            # 终止按钮的回调函数注册
-            stopBtn.click(fn=None, inputs=None, outputs=None, cancels=cancel_handles)
-            stopBtn2.click(fn=None, inputs=None, outputs=None, cancels=cancel_handles)
+        # 函数插件-下拉菜单与随变按钮的互动
+        def on_dropdown_changed(k):
+            variant = crazy_fns[k]["Color"] if "Color" in crazy_fns[k] else "secondary"
+            return {switchy_bt: gr.update(value=k, variant=variant)}
+        dropdown.select(on_dropdown_changed, [dropdown], [switchy_bt] )
+        # 随变按钮的回调函数注册
+        def route(k, *args, **kwargs):
+            if k in [r"打开插件列表", r"请先从插件列表中选择"]: return 
+            yield from ArgsGeneralWrapper(crazy_fns[k]["Function"])(*args, **kwargs)
+        click_handle = switchy_bt.click(route,[switchy_bt, *input_combo, gr.State(PORT)], output_combo)
+        click_handle.then(on_report_generated, [file_upload, chatbot], [file_upload, chatbot])
+        # def expand_file_area(file_upload, area_file_up):
+        #     if len(file_upload)>0: return {area_file_up: gr.update(open=True)}
+        # click_handle.then(expand_file_area, [file_upload, area_file_up], [area_file_up])
+        cancel_handles.append(click_handle)
+        # 终止按钮的回调函数注册
+        stopBtn.click(fn=None, inputs=None, outputs=None, cancels=cancel_handles)
+        stopBtn2.click(fn=None, inputs=None, outputs=None, cancels=cancel_handles)
 
     # gradio的inbrowser触发不太稳定，回滚代码到原始的浏览器打开函数
     def auto_opentab_delay():
