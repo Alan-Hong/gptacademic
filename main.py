@@ -53,7 +53,7 @@ def main():
     cancel_handles = []
     with gr.Blocks(title="ChatGPT 学术优化", theme=set_theme, analytics_enabled=False, css=advanced_css) as demo:
         gr.HTML(title_html)
-        gr.HTML('''<center><a href="https://huggingface.co/spaces/qingxu98/gpt-academic?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>请您打开此页面后务必点击上方的“复制空间”（Duplicate Space）按钮！<font color="#FF00FF">使用时，先在输入框填入API-KEY然后回车。</font><br/>切忌在“复制空间”（Duplicate Space）之前填入API_KEY或进行提问，否则您的API_KEY将极可能被空间所有者攫取！</center>''')
+        gr.HTML('''<center><a href="https://huggingface.co/spaces/qingxu98/gpt-academic?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>请您打开此页面后务必点击上方的“复制空间”（Duplicate Space）按钮！<font color="#FF00FF">使用时，先在输入框填入API-KEY然后回车。</font><br/>切忌在“复制空间”（Duplicate Space）之前填入API_KEY或进行提问，否则您的API_KEY将极可能被空间所有者攫取！<br/>支持任意数量的OpenAI的密钥和API2D的密钥共存，例如输入"OpenAI密钥1,API2D密钥2"，然后回车，即可同时使用两种模型接口。</center>''')
         cookies = gr.State({'api_key': API_KEY, 'llm_model': LLM_MODEL})
         with gr_L1():
             with gr_L2(scale=2):
@@ -63,7 +63,7 @@ def main():
             with gr_L2(scale=1):
                 with gr.Accordion("输入区", open=True) as area_input_primary:
                     with gr.Row():
-                        txt = gr.Textbox(show_label=False, placeholder="Input question/api-key here.").style(container=False)
+                        txt = gr.Textbox(show_label=False, lines=2, placeholder="输入问题或API密钥，输入多个密钥时，用英文逗号间隔。支持OpenAI密钥和API2D密钥共存。").style(container=False)
                     with gr.Row():
                         submitBtn = gr.Button("提交", variant="primary")
                     with gr.Row():
