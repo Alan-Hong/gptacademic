@@ -2,9 +2,9 @@ import traceback
 from toolbox import update_ui, get_conf
 
 def input_clipping(inputs, history, max_token_limit):
-    import tiktoken
     import numpy as np
-    enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    from request_llm.bridge_all import model_info
+    enc = model_info["gpt-3.5-turbo"]['tokenizer']
     def get_token_num(txt): return len(enc.encode(txt, disallowed_special=()))
 
     mode = 'input-and-history'
@@ -448,6 +448,7 @@ def read_and_clean_pdf_text(fp):
                     pf = 998
                     for l in t['lines']:
                         txt_line = "".join([wtf['text'] for wtf in l['spans']])
+                        if len(txt_line) == 0: continue
                         pf = primary_ffsize(l)
                         meta_line.append([txt_line, pf, l['bbox'], l])
                         for wtf in l['spans']: # for l in t['lines']:
@@ -558,8 +559,8 @@ def read_and_clean_pdf_text(fp):
         meta_txt = meta_txt.replace('\n', '\n\n')
 
         ############################## <第 5 步，展示分割效果> ##################################
-        for f in finals:
-            print亮黄(f)
-            print亮绿('***************************')
+        # for f in finals:
+        #    print亮黄(f)
+        #    print亮绿('***************************')
 
     return meta_txt, page_one_meta
