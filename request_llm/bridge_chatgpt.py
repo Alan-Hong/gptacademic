@@ -268,6 +268,18 @@ def generate_payload(inputs, llm_kwargs, history, system_prompt, stream):
         "presence_penalty": 0,
         "frequency_penalty": 0,
     }
+
+    if 'text-davinci' in llm_kwargs['llm_model']:
+        payload = {
+            "model": llm_kwargs['llm_model'].strip('api2d-'),
+            "prompt": inputs,
+            "history": history,
+            "temperature": llm_kwargs['temperature'],
+            "top_p": llm_kwargs['top_p'],
+            "n": 1,
+            "stream": stream,
+        }
+
     try:
         print(f" {llm_kwargs['llm_model']} : {conversation_cnt} : {inputs[:100]} ..........")
     except:
