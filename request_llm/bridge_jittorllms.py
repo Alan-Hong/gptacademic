@@ -55,14 +55,17 @@ class GetGLMHandle(Process):
                     from .jittorllms.models import get_model
                     # availabel_models = ["chatglm", "pangualpha", "llama", "chatrwkv"]
                     args_dict = {'model': 'chatglm'}
+                    print('self.jittorllms_model = get_model(types.SimpleNamespace(**args_dict))')
                     self.jittorllms_model = get_model(types.SimpleNamespace(**args_dict))
             except:
                 self.child.send('[Local Message] Call jittorllms fail 不能正常加载jittorllms的参数。')
                 raise RuntimeError("不能正常加载jittorllms的参数！")
         
+        print('load_model')
         load_model()
 
         # 进入任务等待状态
+        print('进入任务等待状态')
         while True:
             # 进入任务等待状态
             kwargs = self.child.recv()
