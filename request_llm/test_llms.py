@@ -23,4 +23,4 @@ result = predict_no_ui_long_connection(inputs="你好",
                                        history=[],
                                        sys_prompt="")
 
-print('result')
+print(result)
