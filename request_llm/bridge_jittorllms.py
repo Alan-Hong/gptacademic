@@ -39,6 +39,14 @@ class GetGLMHandle(Process):
     def run(self):
         # 子进程执行
         # 第一次运行，加载参数
+        def validate_path():
+            import os, sys
+            dir_name = os.path.dirname(__file__)
+            root_dir_assume = os.path.abspath(os.path.dirname(__file__) +  '/..')
+            # os.chdir(root_dir_assume)
+            sys.path.append(root_dir_assume + '/request_llm/jittorllms')
+        validate_path() # validate path so you can run from base directory
+
         def load_model():
             import types
             try:
