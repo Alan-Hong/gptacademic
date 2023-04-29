@@ -54,7 +54,7 @@ class GetGLMHandle(Process):
                     device, = get_conf('LOCAL_MODEL_DEVICE')
                     from .jittorllms.models import get_model
                     # availabel_models = ["chatglm", "pangualpha", "llama", "chatrwkv"]
-                    args_dict = {'model': 'chatglm', 'RUN_DEVICE':'cpu'}
+                    args_dict = {'model': 'chatglm'}
                     self.jittorllms_model = get_model(types.SimpleNamespace(**args_dict))
             except:
                 self.child.send('[Local Message] Call jittorllms fail 不能正常加载jittorllms的参数。')
