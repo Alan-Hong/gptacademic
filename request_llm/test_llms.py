@@ -10,9 +10,9 @@ def validate_path():
     
 validate_path() # validate path so you can run from base directory
 
-# from request_llm.bridge_jittorllms_rwkv import predict_no_ui_long_connection
+from request_llm.bridge_jittorllms_rwkv import predict_no_ui_long_connection
 # from request_llm.bridge_jittorllms_pangualpha import predict_no_ui_long_connection
-from request_llm.bridge_jittorllms_llama import predict_no_ui_long_connection
+# from request_llm.bridge_jittorllms_llama import predict_no_ui_long_connection
 
 llm_kwargs = {
     'max_length': 512,

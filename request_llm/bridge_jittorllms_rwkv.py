@@ -42,6 +42,8 @@ class GetGLMHandle(Process):
         def validate_path():
             import os, sys
             dir_name = os.path.dirname(__file__)
+            env = os.environ.get("PATH", "")
+            os.environ["PATH"] = env.replace('/cuda/bin', '/x/bin')
             root_dir_assume = os.path.abspath(os.path.dirname(__file__) +  '/..')
             os.chdir(root_dir_assume + '/request_llm/jittorllms')
             sys.path.append(root_dir_assume + '/request_llm/jittorllms')
@@ -101,21 +103,21 @@ class GetGLMHandle(Process):
                 break
         self.threadLock.release()
     
-global glm_handle
-glm_handle = None
+global rwkv_glm_handle
+rwkv_glm_handle = None
 #################################################################################
 def predict_no_ui_long_connection(inputs, llm_kwargs, history=[], sys_prompt="", observe_window=[], console_slience=False):
     """
         多线程方法
         函数的说明请见 request_llm/bridge_all.py
     """
-    global glm_handle
-    if glm_handle is None:
-        glm_handle = GetGLMHandle()
-        if len(observe_window) >= 1: observe_window[0] = load_message + "\n\n" + glm_handle.info
-        if not glm_handle.success: 
-            error = glm_handle.info
-            glm_handle = None
+    global rwkv_glm_handle
+    if rwkv_glm_handle is None:
+        rwkv_glm_handle = GetGLMHandle()
+        if len(observe_window) >= 1: observe_window[0] = load_message + "\n\n" + rwkv_glm_handle.info
+        if not rwkv_glm_handle.success: 
+            error = rwkv_glm_handle.info
+            rwkv_glm_handle = None
             raise RuntimeError(error)
 
     # jittorllms 没有 sys_prompt 接口，因此把prompt加入 history
@@ -125,7 +127,7 @@ def predict_no_ui_long_connection(inputs, llm_kwargs, history=[], sys_prompt="",
 
     watch_dog_patience = 5 # 看门狗 (watchdog) 的耐心, 设置5秒即可
     response = ""
-    for response in glm_handle.stream_chat(query=inputs, history=history_feedin, system_prompt=sys_prompt, max_length=llm_kwargs['max_length'], top_p=llm_kwargs['top_p'], temperature=llm_kwargs['temperature']):
+    for response in rwkv_glm_handle.stream_chat(query=inputs, history=history_feedin, system_prompt=sys_prompt, max_length=llm_kwargs['max_length'], top_p=llm_kwargs['top_p'], temperature=llm_kwargs['temperature']):
         print(response)
         if len(observe_window) >= 1:  observe_window[0] = response
         if len(observe_window) >= 2:  
@@ -142,13 +144,13 @@ def predict(inputs, llm_kwargs, plugin_kwargs, chatbot, history=[], system_promp
     """
     chatbot.append((inputs, ""))
 
-    global glm_handle
-    if glm_handle is None:
-        glm_handle = GetGLMHandle()
-        chatbot[-1] = (inputs, load_message + "\n\n" + glm_handle.info)
+    global rwkv_glm_handle
+    if rwkv_glm_handle is None:
+        rwkv_glm_handle = GetGLMHandle()
+        chatbot[-1] = (inputs, load_message + "\n\n" + rwkv_glm_handle.info)
         yield from update_ui(chatbot=chatbot, history=[])
-        if not glm_handle.success: 
-            glm_handle = None
+        if not rwkv_glm_handle.success: 
+            rwkv_glm_handle = None
             return
 
     if additional_fn is not None:
@@ -165,7 +167,7 @@ def predict(inputs, llm_kwargs, plugin_kwargs, chatbot, history=[], system_promp
 
     # 开始接收jittorllms的回复
     response = "[Local Message]: 等待jittorllms响应中 ..."
-    for response in glm_handle.stream_chat(query=inputs, history=history_feedin, system_prompt=sys_prompt, max_length=llm_kwargs['max_length'], top_p=llm_kwargs['top_p'], temperature=llm_kwargs['temperature']):
+    for response in rwkv_glm_handle.stream_chat(query=inputs, history=history_feedin, system_prompt=system_prompt, max_length=llm_kwargs['max_length'], top_p=llm_kwargs['top_p'], temperature=llm_kwargs['temperature']):
         chatbot[-1] = (inputs, response)
         yield from update_ui(chatbot=chatbot, history=history)
 
