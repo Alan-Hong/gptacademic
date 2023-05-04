@@ -1,6 +1,6 @@
-# How to build | 如何构建: docker build -t gpt-academic --network=host  -f Dockerfile+ChatGLM .
-# How to run | (1) 我想直接一键运行（选择0号GPU）: docker run --rm -it --net=host --gpus \"device=0\" gpt-academic
-# How to run | (2) 我想运行之前进容器做一些调整（选择1号GPU）: docker run --rm -it --net=host --gpus \"device=1\" gpt-academic bash
+# How to build | 如何构建: docker build -t gpt-academic-jittor --network=host  -f Dockerfile+ChatGLM .
+# How to run | (1) 我想直接一键运行（选择0号GPU）: docker run --rm -it --net=host --gpus \"device=0\" gpt-academic-jittor bash
+# How to run | (2) 我想运行之前进容器做一些调整（选择1号GPU）: docker run --rm -it --net=host --gpus \"device=1\" gpt-academic-jittor bash
  
 # 从NVIDIA源，从而支持显卡运损（检查宿主的nvidia-smi中的cuda版本必须>=11.3）
 FROM nvidia/cuda:11.3.1-runtime-ubuntu20.04
@@ -31,10 +31,10 @@ WORKDIR /gpt/chatgpt_academic
 RUN $useProxyNetwork python3 -m pip install -r requirements.txt
 RUN $useProxyNetwork python3 -m pip install -r request_llm/requirements_chatglm.txt
 RUN $useProxyNetwork python3 -m pip install -r request_llm/requirements_newbing.txt
-RUN $useProxyNetwork python3 -m pip install -r request_llm/requirements_jittorllms.txt
+RUN $useProxyNetwork python3 -m pip install -r request_llm/requirements_jittorllms.txt -i https://pypi.jittor.org/simple -I
 
 # 下载JittorLLMs
-RUN $useProxyNetwork git clone https://gitlink.org.cn/jittor/JittorLLMs.git --depth 1 request_llm/jittorllms
+RUN $useProxyNetwork git clone https://github.com/binary-husky/JittorLLMs.git --depth 1 request_llm/jittorllms
 
 # 禁用缓存，确保更新代码
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
