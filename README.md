@@ -1,6 +1,6 @@
 > **Note**
 >
-> 本项目依赖的Gradio组件的新版pip包(Gradio 3.26~3.27)有严重bug。所以，请在安装时严格选择requirements.txt中**指定的版本**。 
+> 安装依赖时，请严格选择requirements.txt中**指定的版本**。 
 > 
 > `pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/`
 >
@@ -9,7 +9,7 @@
 
 **如果喜欢这个项目，请给它一个Star；如果你发明了更好用的快捷键或函数插件，欢迎发pull requests**
 
-If you like this project, please give it a Star. If you've come up with more useful academic shortcuts or functional plugins, feel free to open an issue or pull request. We also have a README in [English|](docs/README_EN.md)[日本語|](docs/README_JP.md)[Русский|](docs/README_RS.md)[Français](docs/README_FR.md) translated by this project itself.
+If you like this project, please give it a Star. If you've come up with more useful academic shortcuts or functional plugins, feel free to open an issue or pull request. We also have a README in [English|](docs/README_EN.md)[日本語|](docs/README_JP.md)[한국어|](https://github.com/mldljyh/ko_gpt_academic)[Русский|](docs/README_RS.md)[Français](docs/README_FR.md) translated by this project itself.
 
 > **Note**
 >
