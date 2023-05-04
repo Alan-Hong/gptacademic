@@ -30,7 +30,7 @@ class GetGLMHandle(Process):
             from toolbox import trimmed_format_exc
             
             self.info = r"缺少jittorllms的依赖，如果要使用jittorllms，除了基础的pip依赖以外，您还需要运行`pip install -r request_llm/requirements_jittorllms.txt`"+\
-                        r"和`git clone https://gitlink.org.cn/jittor/JittorLLMs.git --depth 1 request_llm/jittorllms`两个指令来安装jittorllms的依赖（在项目根目录运行这两个指令）。" + trimmed_format_exc()
+                        r"和`git clone https://github.com/binary-husky/JittorLLMs.git --depth 1 request_llm/jittorllms`两个指令来安装jittorllms的依赖（在项目根目录运行这两个指令）。" + trimmed_format_exc()
             self.success = False
 
     def ready(self):
